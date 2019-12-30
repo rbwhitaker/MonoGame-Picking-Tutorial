@@ -86,7 +86,81 @@ namespace Picking
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
+            Vector2 mouseLocation = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
+            Viewport viewport = this.GraphicsDevice.Viewport;
+
+            bool mouseOverSomething = false;
+
+            if (Intersects(mouseLocation, asteroid, asteroidWorld, view, projection, viewport))
+            {
+                message = "Mouse Over:  Asteroid";
+                mouseOverSomething = true;
+            }
+            if (Intersects(mouseLocation, smallShip, smallShipWorld, view, projection, viewport))
+            {
+                message = "Mouse Over:  Small Ship";
+                mouseOverSomething = true;
+            }
+            if (Intersects(mouseLocation, largeShip, largeShipWorld, view, projection, viewport))
+            {
+                message = "Mouse Over:  Large Ship";
+                mouseOverSomething = true;
+            }
+
+            if (!mouseOverSomething)
+            {
+                message = "Mouse Over:  None";
+            }
+
             base.Update(gameTime);
+        }
+
+        public Ray CalculateRay(Vector2 mouseLocation, Matrix view,
+            Matrix projection, Viewport viewport)
+        {
+            Vector3 nearPoint = viewport.Unproject(new Vector3(mouseLocation.X,
+                    mouseLocation.Y, 0.0f),
+                projection,
+                view,
+                Matrix.Identity);
+
+            Vector3 farPoint = viewport.Unproject(new Vector3(mouseLocation.X,
+                    mouseLocation.Y, 1.0f),
+                projection,
+                view,
+                Matrix.Identity);
+
+            Vector3 direction = farPoint - nearPoint;
+            direction.Normalize();
+
+            return new Ray(nearPoint, direction);
+        }
+
+        public float? IntersectDistance(BoundingSphere sphere, Vector2 mouseLocation,
+            Matrix view, Matrix projection, Viewport viewport)
+        {
+            Ray mouseRay = CalculateRay(mouseLocation, view, projection, viewport);
+            return mouseRay.Intersects(sphere);
+        }
+
+        public bool Intersects(Vector2 mouseLocation,
+            Model model, Matrix world,
+            Matrix view, Matrix projection,
+            Viewport viewport)
+        {
+            foreach (ModelMesh m in model.Meshes)
+            {
+                BoundingSphere sphere = m.BoundingSphere;
+                sphere = sphere.Transform(world);
+                float? distance = IntersectDistance(sphere, mouseLocation, view, projection, viewport);
+
+                if (distance != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
