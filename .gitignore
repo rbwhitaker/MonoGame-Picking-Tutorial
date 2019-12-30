@@ -1,0 +1,7 @@
+.vs/
+MonoGamePickingTutorial/bin/
+.ncrunchsolution.user
+*.user
+MonoGamePickingTutorial/obj/
+MonoGamePickingTutorial/Content/obj/
+MonoGamePickingTutorial/Content/bin/
